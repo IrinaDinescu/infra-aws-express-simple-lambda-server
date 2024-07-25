@@ -1,0 +1,36 @@
+Resources:
+  MyLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 's3:*'
+                Resource: '*'
+
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: express-lambda-server
+      Role: !GetAtt MyLambdaRole.Arn
+      Runtime: nodejs20.x
+      Handler: dist/lambda.handler
+      Code:
+        S3Bucket: myirinabucketforlambdafunction
+        S3Key: lambda-deployment-package.zip
+      Tags:
+        - Key: Name
+          Value: MyLambdaFunction
