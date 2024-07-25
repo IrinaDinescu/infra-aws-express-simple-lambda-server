@@ -1,3 +1,10 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  AppName:
+    Type: String
+    Description: The name of the application
+    Default: 'simple-express-server'
+
 Resources:
   MyLambdaRole:
     Type: 'AWS::IAM::Role'
@@ -18,23 +25,29 @@ Resources:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
-                Action: 's3:*'
+                Action:
+                  - 's3:*'
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
                 Resource: '*'
 
   MyLambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: express-lambda-server
+      FunctionName: !Sub '${AppName}-lambda-function'
       Role: !GetAtt MyLambdaRole.Arn
       Runtime: nodejs20.x
       Handler: dist/lambda.handler
       Code:
         S3Bucket: myirinabucketforlambdafunction
         S3Key: lambda-deployment-package.zip
-      Timeout: 600
+      Environment:
+        Variables:
+          NODE_ENV: 'lambda'
       Tags:
         - Key: Name
-          Value: express-lambda-server
+          Value: !Ref AppName
 
   MyLambdaFunctionUrl:
     Type: 'AWS::Lambda::Url'
@@ -50,7 +63,16 @@ Resources:
       Principal: '*'
       FunctionUrlAuthType: NONE
 
+  LambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AppName}-lambda-function'
+      RetentionInDays: 7
+
 Outputs:
   LambdaFunctionUrl:
     Description: 'URL for the Lambda function'
     Value: !GetAtt MyLambdaFunctionUrl.FunctionUrl
+  LogGroupName:
+    Description: 'CloudWatch Log Group Name'
+    Value: !Ref LambdaLogGroup
