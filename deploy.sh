@@ -52,6 +52,15 @@ zip -r ../$DEPLOY_PACKAGE *
 echo "Changing back to the original directory..."
 cd ..
 
+# Check if the S3 bucket exists
+echo "Checking if S3 bucket exists..."
+if ! aws s3api head-bucket --bucket $S3_BUCKET 2>/dev/null; then
+    echo "S3 bucket does not exist. Creating a new bucket..."
+    aws s3api create-bucket --bucket $S3_BUCKET --region $(aws configure get region) --create-bucket-configuration LocationConstraint=$(aws configure get region)
+else
+    echo "S3 bucket already exists."
+fi
+
 # Upload the deployment package to the specified S3 bucket
 echo "Uploading deployment package to S3..."
 aws s3 cp $DEPLOY_PACKAGE s3://$S3_BUCKET/
