@@ -1,9 +1,9 @@
-import serverlessExpress from 'aws-serverless-express';
 import { Handler } from 'aws-lambda';
+import serverless from 'serverless-http';
 import app from './index';
 
-const server = serverlessExpress.createServer(app);
+const server = serverless(app);
 
 export const handler: Handler = async (event, context) => {
-  return serverlessExpress.proxy(server, event, context);
+  return server(event, context);
 };

@@ -31,6 +31,26 @@ Resources:
       Code:
         S3Bucket: myirinabucketforlambdafunction
         S3Key: lambda-deployment-package.zip
+      Timeout: 600
       Tags:
         - Key: Name
-          Value: MyLambdaFunction
+          Value: express-lambda-server
+
+  MyLambdaFunctionUrl:
+    Type: 'AWS::Lambda::Url'
+    Properties:
+      AuthType: NONE
+      TargetFunctionArn: !GetAtt MyLambdaFunction.Arn
+
+  LambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunctionUrl'
+      FunctionName: !Ref MyLambdaFunction
+      Principal: '*'
+      FunctionUrlAuthType: NONE
+
+Outputs:
+  LambdaFunctionUrl:
+    Description: 'URL for the Lambda function'
+    Value: !GetAtt MyLambdaFunctionUrl.FunctionUrl
